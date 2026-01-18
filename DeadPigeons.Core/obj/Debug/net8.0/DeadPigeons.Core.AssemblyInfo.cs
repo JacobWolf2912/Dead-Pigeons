@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DeadPigeons.Core")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b3d10855adf5ef66a2c8e66c6c180f10c838cb94")]
 [assembly: System.Reflection.AssemblyProductAttribute("DeadPigeons.Core")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DeadPigeons.Core")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

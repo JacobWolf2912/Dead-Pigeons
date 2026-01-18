@@ -1,0 +1,16 @@
+{
+  "$schema": "https://xunit.net/schema/current/xunit.runner.schema.json",
+  "appDomain": "denied",
+  "shadowCopy": false,
+  "preEnumerateTheories": false,
+  "longRunningTestSeconds": 60,
+  "maxParallelThreads": -1,
+  "methodDisplay": "method",
+  "methodDisplayOptions": "all",
+  "diagnosticMessages": false,
+  "parallelizeAssembly": true,
+  "parallelizeTestCollections": true,
+  "Traits": {
+    "Category": ["Integration"]
+  }
+}

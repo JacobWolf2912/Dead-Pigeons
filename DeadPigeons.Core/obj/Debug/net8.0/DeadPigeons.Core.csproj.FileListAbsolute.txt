@@ -6,6 +6,7 @@ C:\Users\matej\Desktop\VisualStudio projects\Dead Pigeons\DeadPigeons.Core\obj\D
 C:\Users\matej\Desktop\VisualStudio projects\Dead Pigeons\DeadPigeons.Core\obj\Debug\net8.0\DeadPigeons.Core.AssemblyInfoInputs.cache
 C:\Users\matej\Desktop\VisualStudio projects\Dead Pigeons\DeadPigeons.Core\obj\Debug\net8.0\DeadPigeons.Core.AssemblyInfo.cs
 C:\Users\matej\Desktop\VisualStudio projects\Dead Pigeons\DeadPigeons.Core\obj\Debug\net8.0\DeadPigeons.Core.csproj.CoreCompileInputs.cache
+C:\Users\matej\Desktop\VisualStudio projects\Dead Pigeons\DeadPigeons.Core\obj\Debug\net8.0\DeadPigeons.Core.sourcelink.json
 C:\Users\matej\Desktop\VisualStudio projects\Dead Pigeons\DeadPigeons.Core\obj\Debug\net8.0\DeadPigeons.Core.dll
 C:\Users\matej\Desktop\VisualStudio projects\Dead Pigeons\DeadPigeons.Core\obj\Debug\net8.0\refint\DeadPigeons.Core.dll
 C:\Users\matej\Desktop\VisualStudio projects\Dead Pigeons\DeadPigeons.Core\obj\Debug\net8.0\DeadPigeons.Core.pdb

@@ -60,8 +60,8 @@ namespace DeadPigeons.Infrastructure.Services
             return await _transactionRepository.GetByPlayerIdAsync(playerId);
         }
 
-        // Approve a pending transaction
-        public async Task<Transaction> ApproveTransactionAsync(Guid transactionId)
+        // Approve a pending transaction (optionally with edited amount)
+        public async Task<Transaction> ApproveTransactionAsync(Guid transactionId, decimal? approveAmount = null)
         {
             var transaction = await _transactionRepository.GetByIdAsync(transactionId);
             if (transaction == null)
@@ -72,8 +72,32 @@ namespace DeadPigeons.Infrastructure.Services
             transaction.IsApproved = true;
             transaction.ApprovedAt = DateTime.UtcNow;
 
+            // Update amount if provided (admin edited it)
+            if (approveAmount.HasValue)
+            {
+                transaction.Amount = approveAmount.Value;
+            }
+
             await _transactionRepository.UpdateAsync(transaction);
             return transaction;
+        }
+
+        // Delete a pending transaction (dismiss it)
+        public async Task DeleteTransactionAsync(Guid transactionId)
+        {
+            var transaction = await _transactionRepository.GetByIdAsync(transactionId);
+            if (transaction == null)
+            {
+                throw new Exception("Transaction not found");
+            }
+
+            // Only allow deletion of pending transactions
+            if (transaction.IsApproved)
+            {
+                throw new Exception("Cannot delete an approved transaction");
+            }
+
+            await _transactionRepository.DeleteAsync(transactionId);
         }
 
         // Get all pending transactions (for admin review)

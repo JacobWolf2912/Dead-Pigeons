@@ -11,6 +11,7 @@ namespace DeadPigeons.Infrastructure.Data
         {
         }
 
+        public DbSet<PendingPlayer> PendingPlayers => Set<PendingPlayer>();
         public DbSet<Player> Players => Set<Player>();
         public DbSet<Game> Games => Set<Game>();
         public DbSet<Board> Boards => Set<Board>();

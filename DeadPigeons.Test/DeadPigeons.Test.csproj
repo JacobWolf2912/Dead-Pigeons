@@ -10,13 +10,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-  <PackageReference Include="xunit" Version="2.5.3" />
-  <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3">
-    <PrivateAssets>all</PrivateAssets>
-  </PackageReference>
-  <PackageReference Include="Xunit.DependencyInjection" Version="8.0.1" />
-  <PackageReference Include="Testcontainers" Version="3.*" />
-</ItemGroup>
+    <PackageReference Include="xunit" Version="2.5.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Xunit.DependencyInjection" Version="8.0.1" />
+    <PackageReference Include="Testcontainers" Version="3.*" />
+    <PackageReference Include="Testcontainers.MsSql" Version="3.*" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.22" />
+  </ItemGroup>
 	
   <ItemGroup>
     <ProjectReference Include="..\DeadPigeons.Core\DeadPigeons.Core.csproj" />

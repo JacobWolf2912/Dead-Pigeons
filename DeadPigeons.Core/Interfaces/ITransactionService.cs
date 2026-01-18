@@ -13,8 +13,11 @@ namespace DeadPigeons.Core.Interfaces
         // Calculate player's current balance (approved deposits - board purchases)
         Task<decimal> GetPlayerBalanceAsync(Guid playerId);
 
-        // Approve a pending transaction
-        Task<Transaction> ApproveTransactionAsync(Guid transactionId);
+        // Approve a pending transaction (optionally with edited amount)
+        Task<Transaction> ApproveTransactionAsync(Guid transactionId, decimal? approveAmount = null);
+
+        // Dismiss a pending transaction (delete it)
+        Task DeleteTransactionAsync(Guid transactionId);
 
         // Get all pending transactions (for admin to review)
         Task<IEnumerable<Transaction>> GetPendingTransactionsAsync();

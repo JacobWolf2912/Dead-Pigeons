@@ -57,5 +57,15 @@ namespace DeadPigeons.Infrastructure.Repositories
             _context.Transactions.Update(transaction);
             await _context.SaveChangesAsync();
         }
+
+        public async Task DeleteAsync(Guid id)
+        {
+            var transaction = await _context.Transactions.FindAsync(id);
+            if (transaction != null)
+            {
+                _context.Transactions.Remove(transaction);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

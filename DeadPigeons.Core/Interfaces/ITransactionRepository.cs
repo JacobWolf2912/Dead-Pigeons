@@ -10,5 +10,6 @@ namespace DeadPigeons.Core.Interfaces
         Task<IEnumerable<Transaction>> GetAllAsync();
         Task<IEnumerable<Transaction>> GetApprovedTransactionsByPlayerIdAsync(Guid playerId);
         Task UpdateAsync(Transaction transaction);
+        Task DeleteAsync(Guid id);
     }
 }
