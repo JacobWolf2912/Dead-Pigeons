@@ -1,0 +1,6 @@
+@Dead_Pigeons_HostAddress = http://localhost:5047
+
+GET {{Dead_Pigeons_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
