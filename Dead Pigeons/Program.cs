@@ -14,10 +14,25 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:3000")
+        if (builder.Environment.IsDevelopment())
+        {
+            // Allow localhost for development
+            policy.WithOrigins("http://localhost:3000", "http://localhost:5047")
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials();
+        }
+        else
+        {
+            // Allow Vercel production deployment and any vercel.app subdomain
+            policy.SetIsOriginAllowed(origin =>
+                origin == "https://dead-pigeons-e9z2tfcct-jakub-mazurs-projects.vercel.app" ||
+                origin.EndsWith(".vercel.app", StringComparison.OrdinalIgnoreCase)
+            )
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
+        }
     });
 });
 
