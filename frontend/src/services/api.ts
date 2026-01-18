@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5047/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5047/api';
 
 // Create axios instance with default config
 const apiClient = axios.create({
@@ -29,6 +29,18 @@ export const authService = {
 
   getCurrentUser: () =>
     apiClient.get('/auth/me'),
+
+  getPendingPlayers: () =>
+    apiClient.get('/auth/admin/pending-players'),
+
+  getAllPlayers: () =>
+    apiClient.get('/auth/admin/players'),
+
+  approvePendingPlayer: (playerId: string) =>
+    apiClient.post(`/auth/admin/approve-player/${playerId}`),
+
+  togglePlayerActive: (playerId: string) =>
+    apiClient.post(`/auth/admin/toggle-player/${playerId}/active`),
 };
 
 // ==================== Transactions ====================
@@ -49,8 +61,11 @@ export const transactionService = {
   getPendingTransactions: () =>
     apiClient.get('/transactions/pending'),
 
-  approveTransaction: (transactionId: string) =>
-    apiClient.post(`/transactions/${transactionId}/approve`),
+  approveTransaction: (transactionId: string, amount?: number) =>
+    apiClient.post(`/transactions/${transactionId}/approve`, amount !== undefined ? { amount } : {}),
+
+  dismissTransaction: (transactionId: string) =>
+    apiClient.post(`/transactions/${transactionId}/dismiss`),
 };
 
 // ==================== Boards ====================

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, LoginResponse } from '../types';
+import { User } from '../types';
 import { authService } from '../services/api';
 
 interface AuthContextType {
@@ -48,10 +48,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Generate a simple JWT-like token (in real app, backend should return this)
       const token = btoa(JSON.stringify(userData));
       localStorage.setItem('authToken', token);
+      localStorage.setItem('userRole', userData.isAdmin ? 'admin' : 'player');
       setUser(userData);
     } catch (err: any) {
       // Handle both single error string and array of errors
-      let errorMessage = 'Login failed. Please try again.';
+      let errorMessage = 'Invalid email or password';
       if (err.response?.data?.error) {
         errorMessage = err.response.data.error;
       } else if (err.response?.data?.errors) {
@@ -71,11 +72,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
     try {
       const response = await authService.register(email, password, fullName, phoneNumber);
+      // With new flow, user is pending admin approval - no immediate login
+      // Just resolve the promise without setting user data
+      if (response.data.pendingId) {
+        // Registration successful but pending approval
+        return;
+      }
+      // Fallback for any user data that might be returned
       const { user: userData } = response.data;
-      // Generate a simple JWT-like token (in real app, backend should return this)
-      const token = btoa(JSON.stringify(userData));
-      localStorage.setItem('authToken', token);
-      setUser(userData);
+      if (userData) {
+        const token = btoa(JSON.stringify(userData));
+        localStorage.setItem('authToken', token);
+        setUser(userData);
+      }
     } catch (err: any) {
       // Handle both single error string and array of errors
       let errorMessage = 'Registration failed. Please try again.';
@@ -95,6 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     localStorage.removeItem('authToken');
+    localStorage.removeItem('userRole');
     setUser(null);
     setError(null);
   };

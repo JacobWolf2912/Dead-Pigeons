@@ -1,18 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { transactionService, gameService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { transactionService, gameService, authService } from '../services/api';
 import { PendingTransaction, Game } from '../types';
 import './AdminPanel.css';
 
+interface PendingPlayer {
+  id: string;
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  createdAt: string;
+}
+
+interface Player {
+  id: string;
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
 const AdminPanel: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'transactions' | 'games'>('transactions');
+  const { logout } = useAuth();
+  const [activeTab, setActiveTab] = useState<'pendingPlayers' | 'players' | 'transactions' | 'games'>('pendingPlayers');
+  const [pendingPlayers, setPendingPlayers] = useState<PendingPlayer[]>([]);
+  const [approvedPlayers, setApprovedPlayers] = useState<Player[]>([]);
   const [pendingTransactions, setPendingTransactions] = useState<PendingTransaction[]>([]);
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [approving, setApproving] = useState<string | null>(null);
+  const [dismissing, setDismissing] = useState<string | null>(null);
   const [drawingNumbers, setDrawingNumbers] = useState<string | null>(null);
+  const [expandedPlayer, setExpandedPlayer] = useState<string | null>(null);
+  const [toggling, setToggling] = useState<string | null>(null);
+  const [editedAmounts, setEditedAmounts] = useState<{ [key: string]: number }>({});
 
   // Draw numbers form state
   const [selectedGameId, setSelectedGameId] = useState<string>('');
@@ -30,11 +55,15 @@ const AdminPanel: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const [transRes, gamesRes] = await Promise.all([
+      const [pendingPlayersRes, playersRes, transRes, gamesRes] = await Promise.all([
+        authService.getPendingPlayers(),
+        authService.getAllPlayers(),
         transactionService.getPendingTransactions(),
         gameService.getAllGames(),
       ]);
 
+      setPendingPlayers(pendingPlayersRes.data.pendingPlayers);
+      setApprovedPlayers(playersRes.data.players);
       setPendingTransactions(transRes.data);
       setGames(gamesRes.data);
 
@@ -49,21 +78,54 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  const handleApproveTransaction = async (transactionId: string) => {
+  const handleApproveTransaction = async (transactionId: string, originalAmount: number) => {
     try {
       setApproving(transactionId);
-      await transactionService.approveTransaction(transactionId);
+      const approveAmount = editedAmounts[transactionId] || originalAmount;
+      await transactionService.approveTransaction(transactionId, approveAmount);
 
       // Remove from list
       setPendingTransactions((prev) =>
         prev.filter((t) => t.id !== transactionId)
       );
 
+      // Clear edited amount
+      setEditedAmounts((prev) => {
+        const updated = { ...prev };
+        delete updated[transactionId];
+        return updated;
+      });
+
       setApproving(null);
     } catch (err: any) {
       console.error('Error approving transaction:', err);
       setError('Failed to approve transaction. Please try again.');
       setApproving(null);
+    }
+  };
+
+  const handleDismissTransaction = async (transactionId: string) => {
+    try {
+      setDismissing(transactionId);
+      await transactionService.dismissTransaction(transactionId);
+
+      // Remove from list
+      setPendingTransactions((prev) =>
+        prev.filter((t) => t.id !== transactionId)
+      );
+
+      // Clear edited amount
+      setEditedAmounts((prev) => {
+        const updated = { ...prev };
+        delete updated[transactionId];
+        return updated;
+      });
+
+      setDismissing(null);
+    } catch (err: any) {
+      console.error('Error dismissing transaction:', err);
+      setError('Failed to dismiss transaction. Please try again.');
+      setDismissing(null);
     }
   };
 
@@ -150,22 +212,76 @@ const AdminPanel: React.FC = () => {
     }
   };
 
+  const handleApprovePendingPlayer = async (playerId: string) => {
+    try {
+      setApproving(playerId);
+      await authService.approvePendingPlayer(playerId);
+
+      // Remove from pending and refresh data
+      setPendingPlayers((prev) => prev.filter((p) => p.id !== playerId));
+      setApproving(null);
+      setError(null);
+    } catch (err: any) {
+      console.error('Error approving player:', err);
+      setError('Failed to approve player. Please try again.');
+      setApproving(null);
+    }
+  };
+
+  const handleTogglePlayerActive = async (playerId: string) => {
+    try {
+      setToggling(playerId);
+      await authService.togglePlayerActive(playerId);
+
+      // Update player status
+      setApprovedPlayers((prev) =>
+        prev.map((p) =>
+          p.id === playerId ? { ...p, isActive: !p.isActive } : p
+        )
+      );
+      setToggling(null);
+      setError(null);
+    } catch (err: any) {
+      console.error('Error toggling player status:', err);
+      setError('Failed to toggle player status. Please try again.');
+      setToggling(null);
+    }
+  };
+
   return (
     <div className="admin-container">
       <nav className="admin-navbar">
         <h1 className="admin-logo">Dead Pigeons - Admin Panel</h1>
-        <button onClick={() => navigate('/dashboard')} className="back-btn">
-          Back to Dashboard
+        <button
+          onClick={() => {
+            logout();
+            navigate('/login');
+          }}
+          className="back-btn"
+        >
+          Logout
         </button>
       </nav>
 
       <div className="admin-content">
-        <div className="admin-tabs">
+        <div className="admin-sidebar-tabs">
+          <button
+            className={`admin-tab ${activeTab === 'pendingPlayers' ? 'active' : ''}`}
+            onClick={() => setActiveTab('pendingPlayers')}
+          >
+            Pending Players
+          </button>
+          <button
+            className={`admin-tab ${activeTab === 'players' ? 'active' : ''}`}
+            onClick={() => setActiveTab('players')}
+          >
+            Players
+          </button>
           <button
             className={`admin-tab ${activeTab === 'transactions' ? 'active' : ''}`}
             onClick={() => setActiveTab('transactions')}
           >
-            Pending Transactions
+            Transactions
           </button>
           <button
             className={`admin-tab ${activeTab === 'games' ? 'active' : ''}`}
@@ -177,7 +293,99 @@ const AdminPanel: React.FC = () => {
 
         {error && <div className="error-message">{error}</div>}
 
-        {activeTab === 'transactions' && (
+        <div className="admin-main-content">
+          {activeTab === 'pendingPlayers' && (
+            <div className="admin-section">
+              <h2>Pending Players</h2>
+              {loading ? (
+                <p className="loading">Loading pending players...</p>
+              ) : pendingPlayers.length === 0 ? (
+                <p className="empty-state">No pending players.</p>
+              ) : (
+                <div className="players-grid">
+                  {pendingPlayers.map((player) => (
+                    <div
+                      key={player.id}
+                      className={`player-card ${expandedPlayer === player.id ? 'expanded' : ''}`}
+                    >
+                      <div
+                        className="player-card-header"
+                        onClick={() => setExpandedPlayer(expandedPlayer === player.id ? null : player.id)}
+                      >
+                        <div className="player-icon">👤</div>
+                        <div className="player-name">{player.fullName}</div>
+                      </div>
+                      {expandedPlayer === player.id && (
+                        <div className="player-card-details">
+                          <p><strong>Full Name:</strong> {player.fullName}</p>
+                          <p><strong>Email:</strong> {player.email}</p>
+                          <p><strong>Phone:</strong> {player.phoneNumber}</p>
+                          <p><strong>Registered:</strong> {new Date(player.createdAt).toLocaleDateString()}</p>
+                          <button
+                            onClick={() => handleApprovePendingPlayer(player.id)}
+                            disabled={approving === player.id}
+                            className="approve-btn"
+                          >
+                            {approving === player.id ? 'Approving...' : 'Approve Player'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'players' && (
+            <div className="admin-section">
+              <h2>Approved Players</h2>
+              {loading ? (
+                <p className="loading">Loading players...</p>
+              ) : approvedPlayers.length === 0 ? (
+                <p className="empty-state">No approved players.</p>
+              ) : (
+                <div className="players-grid">
+                  {approvedPlayers.map((player) => (
+                    <div
+                      key={player.id}
+                      className={`player-card ${expandedPlayer === player.id ? 'expanded' : ''}`}
+                    >
+                      <div
+                        className="player-card-header"
+                        onClick={() => setExpandedPlayer(expandedPlayer === player.id ? null : player.id)}
+                      >
+                        <div className="player-icon">👤</div>
+                        <div className="player-name">{player.fullName}</div>
+                      </div>
+                      {expandedPlayer === player.id && (
+                        <div className="player-card-details">
+                          <p><strong>Full Name:</strong> {player.fullName}</p>
+                          <p><strong>Email:</strong> {player.email}</p>
+                          <p><strong>Phone:</strong> {player.phoneNumber}</p>
+                          <p><strong>Status:</strong> {player.isActive ? '✅ Active' : '⛔ Inactive'}</p>
+                          <p><strong>Registered:</strong> {new Date(player.createdAt).toLocaleDateString()}</p>
+                          <button
+                            onClick={() => handleTogglePlayerActive(player.id)}
+                            disabled={toggling === player.id}
+                            className={`toggle-btn ${player.isActive ? 'active' : 'inactive'}`}
+                          >
+                            {toggling === player.id
+                              ? 'Updating...'
+                              : player.isActive
+                              ? 'Deactivate Player'
+                              : 'Activate Player'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'transactions' && (
           <div className="admin-section">
             <h2>Pending Transactions</h2>
             {loading ? (
@@ -185,39 +393,61 @@ const AdminPanel: React.FC = () => {
             ) : pendingTransactions.length === 0 ? (
               <p className="empty-state">No pending transactions.</p>
             ) : (
-              <div className="transactions-table">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Player Name</th>
-                      <th>Email</th>
-                      <th>Amount</th>
-                      <th>MobilePay ID</th>
-                      <th>Date</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pendingTransactions.map((trans) => (
-                      <tr key={trans.id}>
-                        <td>{trans.playerName || 'N/A'}</td>
-                        <td>{trans.playerEmail}</td>
-                        <td className="amount">{trans.amount} DKK</td>
-                        <td className="mobile-id">{trans.mobilePayId}</td>
-                        <td>{new Date(trans.createdAt).toLocaleDateString()}</td>
-                        <td>
-                          <button
-                            onClick={() => handleApproveTransaction(trans.id)}
-                            disabled={approving === trans.id}
-                            className="approve-btn"
-                          >
-                            {approving === trans.id ? 'Approving...' : 'Approve'}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="transactions-list">
+                {pendingTransactions.map((trans) => (
+                  <div key={trans.id} className="transaction-item">
+                    <div className="transaction-details">
+                      <div className="transaction-row">
+                        <label>Player Name:</label>
+                        <span>{trans.playerName || 'N/A'}</span>
+                      </div>
+                      <div className="transaction-row">
+                        <label>Email:</label>
+                        <span>{trans.playerEmail}</span>
+                      </div>
+                      <div className="transaction-row">
+                        <label>Mobile Pay ID:</label>
+                        <span className="read-only-field">{trans.mobilePayId}</span>
+                      </div>
+                      <div className="transaction-row">
+                        <label>Amount (DKK):</label>
+                        <input
+                          type="number"
+                          value={editedAmounts[trans.id] || trans.amount}
+                          onChange={(e) =>
+                            setEditedAmounts((prev) => ({
+                              ...prev,
+                              [trans.id]: parseFloat(e.target.value) || 0,
+                            }))
+                          }
+                          className="amount-input"
+                          min="0.01"
+                          step="0.01"
+                        />
+                      </div>
+                      <div className="transaction-row">
+                        <label>Date:</label>
+                        <span>{new Date(trans.createdAt).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                    <div className="transaction-actions">
+                      <button
+                        onClick={() => handleApproveTransaction(trans.id, trans.amount)}
+                        disabled={approving === trans.id || dismissing === trans.id}
+                        className="approve-btn"
+                      >
+                        {approving === trans.id ? 'Approving...' : 'Approve'}
+                      </button>
+                      <button
+                        onClick={() => handleDismissTransaction(trans.id)}
+                        disabled={approving === trans.id || dismissing === trans.id}
+                        className="dismiss-btn"
+                      >
+                        {dismissing === trans.id ? 'Dismissing...' : 'Dismiss'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -328,7 +558,8 @@ const AdminPanel: React.FC = () => {
               </div>
             )}
           </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

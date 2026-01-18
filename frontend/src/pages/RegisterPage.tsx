@@ -11,6 +11,7 @@ const RegisterPage: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [localError, setLocalError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
+  const [registrationPending, setRegistrationPending] = useState(false);
   const [passwordRequirements, setPasswordRequirements] = useState({
     hasMinLength: false,
     hasUppercase: false,
@@ -23,14 +24,15 @@ const RegisterPage: React.FC = () => {
 
   // Validation patterns
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*\-_=+]).{6,}$/;
+  const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*\-_=+,.]).{6,}$/;
   const phonePattern = /^(\d{8}|\d{10}|(\+45)?[-\s]?\d{4}[-\s]?\d{4})$/;
+  const fullNamePattern = /^[a-zA-Z]{2,}\s+[a-zA-Z]{2,}$/;
 
   const validateField = (fieldName: string, value: string): string => {
     switch (fieldName) {
       case 'fullName':
         if (!value.trim()) return 'Full name is required';
-        if (value.trim().length < 2) return 'Full name must be at least 2 characters';
+        if (!fullNamePattern.test(value.trim())) return 'Full name must include first and last name (minimum 2 characters each)';
         if (value.length > 100) return 'Full name must not exceed 100 characters';
         return '';
       case 'email':
@@ -39,13 +41,13 @@ const RegisterPage: React.FC = () => {
         return '';
       case 'phoneNumber':
         if (!value) return 'Phone number is required';
-        if (!phonePattern.test(value)) return 'Phone must be 8-10 digits (optional +45 prefix)';
+        if (!phonePattern.test(value)) return 'Phone number must be 8 digits';
         return '';
       case 'password':
         if (!value) return 'Password is required';
         if (value.length < 6) return 'Password must be at least 6 characters';
         if (!passwordPattern.test(value)) {
-          return 'Password must contain uppercase, lowercase, number, and special character (!@#$%^&*-_=+)';
+          return 'Password must contain uppercase, lowercase, number, and special character (!@#$%^&*-_=+,.)';
         }
         return '';
       case 'confirmPassword':
@@ -82,7 +84,7 @@ const RegisterPage: React.FC = () => {
           hasUppercase: /[A-Z]/.test(value),
           hasLowercase: /[a-z]/.test(value),
           hasNumber: /\d/.test(value),
-          hasSpecialChar: /[!@#$%^&*\-_=+]/.test(value),
+          hasSpecialChar: /[!@#$%^&*\-_=+,.]/.test(value),
         });
         if (confirmPassword) {
           const confirmError = validateField('confirmPassword', confirmPassword);
@@ -119,12 +121,32 @@ const RegisterPage: React.FC = () => {
 
     try {
       await register(email, password, fullName, phoneNumber);
-      navigate('/dashboard');
+      setRegistrationPending(true);
     } catch (err) {
       // Error is handled by AuthContext, display it here too
       setLocalError(error || 'Registration failed. Please try again.');
     }
   };
+
+  if (registrationPending) {
+    return (
+      <div className="auth-container">
+        <div className="auth-box">
+          <h1>Dead Pigeons Lottery</h1>
+          <h2>Registration Pending</h2>
+          <div className="pending-message">
+            <p>Thank you for registering!</p>
+            <p>Your registration has been submitted and is pending admin approval.</p>
+            <p>You will receive confirmation once the admin has reviewed and approved your account.</p>
+            <p className="pending-emphasis">Please wait for the Admin to approve your account.</p>
+          </div>
+          <Link to="/login" className="submit-btn">
+            Return to Login
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-container">
@@ -178,7 +200,6 @@ const RegisterPage: React.FC = () => {
                 type="tel"
                 value={phoneNumber}
                 onChange={(e) => handleFieldChange('phoneNumber', e.target.value)}
-                placeholder="40123456"
                 disabled={isLoading}
                 className={fieldErrors.phoneNumber ? 'input-error' : ''}
               />
@@ -224,7 +245,7 @@ const RegisterPage: React.FC = () => {
                       {passwordRequirements.hasNumber ? '✓' : '✕'} Number (0-9)
                     </span>
                     <span className={passwordRequirements.hasSpecialChar ? 'requirement-met' : 'requirement-unmet'}>
-                      {passwordRequirements.hasSpecialChar ? '✓' : '✕'} Special Char (!@#$%^&*-_=+)
+                      {passwordRequirements.hasSpecialChar ? '✓' : '✕'} Special Char (!@#$%^&*-_=+,.)
                     </span>
                   </>
                 )}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { boardService, gameService, transactionService } from '../services/api';
-import { Game, PricingInfo, BalanceResponse } from '../types';
+import { Game, BalanceResponse } from '../types';
 import './PurchaseBoardPage.css';
 
 const PurchaseBoardPage: React.FC = () => {
@@ -10,7 +10,6 @@ const PurchaseBoardPage: React.FC = () => {
   const navigate = useNavigate();
 
   const [games, setGames] = useState<Game[]>([]);
-  const [pricing, setPricing] = useState<PricingInfo | null>(null);
   const [balance, setBalance] = useState<number | null>(null);
   const [selectedGame, setSelectedGame] = useState<string>('');
   const [fieldCount, setFieldCount] = useState<number>(5);
@@ -42,7 +41,6 @@ const PurchaseBoardPage: React.FC = () => {
 
         const activeGames = gamesRes.data.filter((g: Game) => !g.isClosed);
         setGames(activeGames);
-        setPricing(pricingRes.data);
         setBalance((balanceRes.data as BalanceResponse).balance);
 
         if (activeGames.length > 0) {

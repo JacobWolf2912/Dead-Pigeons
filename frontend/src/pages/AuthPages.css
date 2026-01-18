@@ -220,3 +220,32 @@
   display: block;
   padding: 8px 0;
 }
+
+.pending-message {
+  background-color: #f0f8ff;
+  border: 1px solid #b3d9ff;
+  border-radius: 5px;
+  padding: 20px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.pending-message p {
+  margin: 10px 0;
+  color: #333;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.pending-message p:first-child {
+  margin-top: 0;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.pending-emphasis {
+  color: #667eea;
+  font-weight: 600;
+  margin-top: 15px !important;
+  font-size: 15px !important;
+}
