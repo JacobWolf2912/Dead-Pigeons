@@ -33,7 +33,7 @@ const PurchaseBoardPage: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        const [gamesRes, pricingRes, balanceRes] = await Promise.all([
+        const [gamesRes, , balanceRes] = await Promise.all([
           gameService.getAllGames(),
           boardService.getPricing(),
           transactionService.getBalance(user.playerId!),

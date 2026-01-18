@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './AuthPages.css';
 
@@ -20,7 +20,6 @@ const RegisterPage: React.FC = () => {
     hasSpecialChar: false,
   });
   const { register, isLoading, error } = useAuth();
-  const navigate = useNavigate();
 
   // Validation patterns
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
