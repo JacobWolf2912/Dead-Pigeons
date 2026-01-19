@@ -275,7 +275,8 @@ namespace Dead_Pigeons.Controllers
                         fullName = newPlayer.FullName,
                         email = newPlayer.Email,
                         phoneNumber = newPlayer.PhoneNumber,
-                        isActive = newPlayer.IsActive
+                        isActive = newPlayer.IsActive,
+                        createdAt = newPlayer.CreatedAt
                     }
                 });
             }

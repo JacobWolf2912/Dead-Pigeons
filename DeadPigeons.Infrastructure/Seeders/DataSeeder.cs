@@ -105,5 +105,52 @@ namespace DeadPigeons.Infrastructure.Seeders
                 Console.WriteLine($"✗ Stack trace: {ex.StackTrace}");
             }
         }
+
+        public async Task SeedInitialGameAsync()
+        {
+            // Check if any games exist
+            var existingGames = _dbContext.Games.Count();
+            if (existingGames > 0)
+            {
+                Console.WriteLine($"✓ Games already exist ({existingGames} game(s)). Skipping game seeding.");
+                return;
+            }
+
+            try
+            {
+                Console.WriteLine("→ Creating initial game for this week...");
+
+                // Get the current Saturday (or this Saturday if today is Saturday)
+                TimeZoneInfo copenhagenZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
+                DateTime copenhagenNow = TimeZoneInfo.ConvertTime(DateTime.Now, copenhagenZone);
+
+                int daysUntilSaturday = ((int)DayOfWeek.Saturday - (int)copenhagenNow.DayOfWeek + 7) % 7;
+                if (daysUntilSaturday == 0)
+                {
+                    daysUntilSaturday = 0; // Today is Saturday
+                }
+
+                DateTime weekStart = copenhagenNow.AddDays(daysUntilSaturday).Date;
+                DateTime drawTime = weekStart.AddHours(17); // 5 PM
+
+                var game = new Game
+                {
+                    Id = Guid.NewGuid(),
+                    WeekStart = weekStart,
+                    DrawTime = drawTime,
+                    IsClosed = false
+                };
+
+                _dbContext.Games.Add(game);
+                await _dbContext.SaveChangesAsync();
+
+                Console.WriteLine($"✓ Initial game created: Week starting {weekStart:yyyy-MM-dd}, Draw at {drawTime:yyyy-MM-dd HH:mm}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"✗ Error seeding initial game: {ex.Message}");
+                Console.WriteLine($"✗ Stack trace: {ex.StackTrace}");
+            }
+        }
     }
 }

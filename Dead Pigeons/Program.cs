@@ -64,12 +64,16 @@ builder.Services.AddScoped<IBoardService, BoardService>();
 builder.Services.AddScoped<IGameService, GameService>();
 builder.Services.AddScoped<DataSeeder>();
 
+// Register background service for weekly game scheduling
+builder.Services.AddHostedService<GameSchedulerService>();
+
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
     await seeder.SeedRolesAsync();
     await seeder.SeedAdminAsync();
+    await seeder.SeedInitialGameAsync();
 }
 
 if (app.Environment.IsDevelopment())
