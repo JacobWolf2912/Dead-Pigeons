@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using DeadPigeons.Core.Entities;
 using DeadPigeons.Core.Interfaces;
 using DeadPigeons.Infrastructure.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -220,6 +221,7 @@ namespace Dead_Pigeons.Controllers
         // POST: api/auth/admin/approve-player/{id}
         // Approves a pending player and creates their account
         [HttpPost("admin/approve-player/{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ApprovePlayer(Guid id)
         {
             var pendingPlayer = await _dbContext.PendingPlayers.FindAsync(id);
@@ -259,6 +261,9 @@ namespace Dead_Pigeons.Controllers
 
                 newUser.PlayerId = newPlayer.Id;
                 await _userManager.UpdateAsync(newUser);
+
+                // Assign Player role to the new user
+                await _userManager.AddToRoleAsync(newUser, "Player");
 
                 _dbContext.Players.Add(newPlayer);
 
