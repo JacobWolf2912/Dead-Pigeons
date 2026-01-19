@@ -286,11 +286,20 @@ namespace Dead_Pigeons.Controllers
         }
 
         // GET: api/auth/admin/players
-        // Returns all approved players
+        // Returns all approved players (excludes admin accounts)
         [HttpGet("admin/players")]
         public async Task<IActionResult> GetAllPlayers()
         {
+            // Get all admin users
+            var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
+            var adminPlayerIds = adminUsers
+                .Where(u => u.PlayerId.HasValue)
+                .Select(u => u.PlayerId.Value)
+                .ToList();
+
+            // Get all players except those linked to admin accounts
             var players = await _dbContext.Players
+                .Where(p => !adminPlayerIds.Contains(p.Id))
                 .OrderBy(p => p.FullName)
                 .ToListAsync();
 

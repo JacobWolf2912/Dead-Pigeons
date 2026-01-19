@@ -215,10 +215,16 @@ const AdminPanel: React.FC = () => {
   const handleApprovePendingPlayer = async (playerId: string) => {
     try {
       setApproving(playerId);
-      await authService.approvePendingPlayer(playerId);
+      const approvalResult = await authService.approvePendingPlayer(playerId);
 
-      // Remove from pending and refresh data
+      // Remove from pending list
       setPendingPlayers((prev) => prev.filter((p) => p.id !== playerId));
+
+      // Add to approved players list
+      if (approvalResult.data.player) {
+        setApprovedPlayers((prev) => [...prev, approvalResult.data.player]);
+      }
+
       setApproving(null);
       setError(null);
     } catch (err: any) {
