@@ -101,9 +101,9 @@ namespace Dead_Pigeons.Controllers
         }
 
         // POST: api/games/{id}/draw-numbers
-        // Admin draws winning numbers for a game
+        // Admin draws winning numbers for a closed game (within 24 hours of closure)
         [HttpPost("{id}/draw-numbers")]
-        [AllowAnonymous] // Temporary: for testing purposes
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DrawWinningNumbers(Guid id, [FromBody] DrawNumbersRequest request)
         {
             if (!ModelState.IsValid)
@@ -113,7 +113,32 @@ namespace Dead_Pigeons.Controllers
 
             try
             {
-                var game = await _gameService.DrawWinningNumbersAsync(id, request.Number1, request.Number2, request.Number3);
+                var game = await _gameService.GetGameAsync(id);
+                if (game == null)
+                {
+                    return NotFound(new { error = "Game not found" });
+                }
+
+                // Check if game is closed
+                if (!game.IsClosed)
+                {
+                    return BadRequest(new { error = "Game must be closed before drawing numbers. Game closes at Saturday 17:00." });
+                }
+
+                // Check if numbers already drawn
+                if (game.WinningNumbers != null)
+                {
+                    return BadRequest(new { error = "Winning numbers have already been drawn for this game" });
+                }
+
+                // Check if within 24 hours of closing
+                var timeExpired = DateTime.UtcNow > game.DrawTime.AddHours(24);
+                if (timeExpired)
+                {
+                    return BadRequest(new { error = "24-hour window to input numbers has expired. Please refund the game." });
+                }
+
+                var updatedGame = await _gameService.DrawWinningNumbersAsync(id, request.Number1, request.Number2, request.Number3);
 
                 // Get winning boards
                 var winningBoards = await _gameService.GetWinningBoardsForGameAsync(id);
@@ -123,18 +148,18 @@ namespace Dead_Pigeons.Controllers
                     message = "Winning numbers drawn successfully",
                     game = new
                     {
-                        id = game.Id,
-                        weekStart = game.WeekStart,
-                        drawTime = game.DrawTime,
-                        isClosed = game.IsClosed,
+                        id = updatedGame.Id,
+                        weekStart = updatedGame.WeekStart,
+                        drawTime = updatedGame.DrawTime,
+                        isClosed = updatedGame.IsClosed,
                         winningNumbers = new
                         {
-                            number1 = game.WinningNumbers!.Number1,
-                            number2 = game.WinningNumbers.Number2,
-                            number3 = game.WinningNumbers.Number3,
-                            drawnAt = game.WinningNumbers.DrawnAt
+                            number1 = updatedGame.WinningNumbers!.Number1,
+                            number2 = updatedGame.WinningNumbers.Number2,
+                            number3 = updatedGame.WinningNumbers.Number3,
+                            drawnAt = updatedGame.WinningNumbers.DrawnAt
                         },
-                        totalBoards = game.Boards.Count,
+                        totalBoards = updatedGame.Boards.Count,
                         winningBoards = winningBoards.Count()
                     }
                 });
@@ -146,6 +171,58 @@ namespace Dead_Pigeons.Controllers
             catch (InvalidOperationException ex)
             {
                 return BadRequest(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        // POST: api/games/{id}/refund
+        // Admin refunds all boards if 24 hours have passed without drawing numbers
+        [HttpPost("{id}/refund")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> RefundGame(Guid id)
+        {
+            try
+            {
+                var game = await _gameService.GetGameAsync(id);
+                if (game == null)
+                {
+                    return NotFound(new { error = "Game not found" });
+                }
+
+                // Check if game is closed
+                if (!game.IsClosed)
+                {
+                    return BadRequest(new { error = "Only closed games can be refunded" });
+                }
+
+                // Check if numbers have already been drawn
+                if (game.WinningNumbers != null)
+                {
+                    return BadRequest(new { error = "Cannot refund a game that has already drawn winning numbers" });
+                }
+
+                // Check if 24 hours have passed since closing
+                var timeExpired = DateTime.UtcNow <= game.DrawTime.AddHours(24);
+                if (timeExpired)
+                {
+                    var hoursRemaining = (game.DrawTime.AddHours(24) - DateTime.UtcNow).TotalHours;
+                    return BadRequest(new { error = $"Cannot refund yet. {hoursRemaining:F1} hours remaining in the 24-hour window." });
+                }
+
+                // Delete all boards for this game
+                var boards = _context.Boards.Where(b => b.GameId == id).ToList();
+                _context.Boards.RemoveRange(boards);
+                await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    message = "Game refunded successfully",
+                    refundedBoardCount = boards.Count,
+                    details = $"{boards.Count} boards have been cancelled and players will receive refunds"
+                });
             }
             catch (Exception ex)
             {
