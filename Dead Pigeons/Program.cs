@@ -107,8 +107,6 @@ using (var scope = app.Services.CreateScope())
     var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
     await seeder.SeedRolesAsync();
     await seeder.SeedAdminAsync();
-    await seeder.CleanupAllPendingPlayersAsync();  // Clean up all pending players
-    await seeder.CleanupNonAdminPlayersAsync();  // Clean up any old test/non-admin players
     await seeder.SeedInitialGameAsync();
     await seeder.ReopenCurrentGameAsync();  // Reopen the current game
     await seeder.SetupTestGamesAsync();     // Create a closed test game
