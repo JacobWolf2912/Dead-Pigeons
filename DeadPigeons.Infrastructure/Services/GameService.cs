@@ -65,9 +65,9 @@ namespace DeadPigeons.Infrastructure.Services
                 throw new Exception("Game not found");
             }
 
-            if (game.IsClosed)
+            if (!game.IsClosed)
             {
-                throw new InvalidOperationException("Game is already closed");
+                throw new InvalidOperationException("Game must be closed before drawing numbers");
             }
 
             if (game.WinningNumbers != null)

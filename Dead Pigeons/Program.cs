@@ -4,8 +4,12 @@ using DeadPigeons.Infrastructure.Data;
 using DeadPigeons.Infrastructure.Repositories;
 using DeadPigeons.Infrastructure.Seeders;
 using DeadPigeons.Infrastructure.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,9 +50,39 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
-// Add Authentication - enables [Authorize] attribute
-builder.Services.AddAuthentication();
+// Add JWT Authentication
+var jwtSecret = "your-super-secret-jwt-key-change-this-in-production-at-least-32-characters-long";
+var jwtIssuer = "DeadPigeonsAPI";
+var jwtAudience = "DeadPigeonsApp";
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtIssuer,
+        ValidAudience = jwtAudience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
+    };
+});
+
 builder.Services.AddAuthorization();
+
+// Store JWT settings for use in controllers
+builder.Services.AddSingleton(new JwtSettings
+{
+    Secret = jwtSecret,
+    Issuer = jwtIssuer,
+    Audience = jwtAudience
+});
 
 // Add repositories and services
 builder.Services.AddControllers();
@@ -73,7 +107,12 @@ using (var scope = app.Services.CreateScope())
     var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
     await seeder.SeedRolesAsync();
     await seeder.SeedAdminAsync();
+    await seeder.CleanupAllPendingPlayersAsync();  // Clean up all pending players
+    await seeder.CleanupNonAdminPlayersAsync();  // Clean up any old test/non-admin players
     await seeder.SeedInitialGameAsync();
+    await seeder.ReopenCurrentGameAsync();  // Reopen the current game
+    await seeder.SetupTestGamesAsync();     // Create a closed test game
+    await seeder.EnsureSingleOpenGameAsync(); // Ensure only one open game exists at a time
 }
 
 if (app.Environment.IsDevelopment())

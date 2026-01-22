@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text;
 using System.Text.RegularExpressions;
 using DeadPigeons.Core.Entities;
 using DeadPigeons.Core.Interfaces;
@@ -18,17 +19,57 @@ namespace Dead_Pigeons.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IPlayerService _playerService;
         private readonly AppDbContext _dbContext;
+        private readonly JwtSettings _jwtSettings;
 
         public AuthController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             IPlayerService playerService,
-            AppDbContext dbContext)
+            AppDbContext dbContext,
+            JwtSettings jwtSettings)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _playerService = playerService;
             _dbContext = dbContext;
+            _jwtSettings = jwtSettings;
+        }
+
+        // Generate JWT token for authenticated user
+        private string GenerateJwtToken(ApplicationUser user, bool isAdmin)
+        {
+            var tokenHandler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes(_jwtSettings.Secret);
+
+            var claims = new List<System.Security.Claims.Claim>
+            {
+                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, user.Email ?? ""),
+                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, user.FullName ?? ""),
+            };
+
+            if (isAdmin)
+            {
+                claims.Add(new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, "Admin"));
+            }
+            else
+            {
+                claims.Add(new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, "Player"));
+            }
+
+            var tokenDescriptor = new Microsoft.IdentityModel.Tokens.SecurityTokenDescriptor
+            {
+                Subject = new System.Security.Claims.ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.AddHours(24),
+                Issuer = _jwtSettings.Issuer,
+                Audience = _jwtSettings.Audience,
+                SigningCredentials = new Microsoft.IdentityModel.Tokens.SigningCredentials(
+                    new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(key),
+                    Microsoft.IdentityModel.Tokens.SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
         }
 
         // POST: api/auth/register
@@ -146,10 +187,14 @@ namespace Dead_Pigeons.Controllers
                 }
             }
 
-            // Password is correct - return success
+            // Generate JWT token
+            var token = GenerateJwtToken(user, isAdmin);
+
+            // Password is correct - return success with JWT token
             return Ok(new
             {
                 message = "Login successful",
+                token = token,
                 user = new
                 {
                     id = user.Id,
@@ -200,6 +245,7 @@ namespace Dead_Pigeons.Controllers
         // GET: api/auth/admin/pending-players
         // Returns all pending players waiting for admin approval
         [HttpGet("admin/pending-players")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetPendingPlayers()
         {
             var pendingPlayers = await _dbContext.PendingPlayers
@@ -259,17 +305,19 @@ namespace Dead_Pigeons.Controllers
                     CreatedAt = DateTime.UtcNow
                 };
 
-                newUser.PlayerId = newPlayer.Id;
-                await _userManager.UpdateAsync(newUser);
-
-                // Assign Player role to the new user
-                await _userManager.AddToRoleAsync(newUser, "Player");
-
+                // Add Player to context and save BEFORE linking to ApplicationUser
                 _dbContext.Players.Add(newPlayer);
 
                 // Remove from pending players
                 _dbContext.PendingPlayers.Remove(pendingPlayer);
                 await _dbContext.SaveChangesAsync();
+
+                // NOW link the ApplicationUser to the created Player
+                newUser.PlayerId = newPlayer.Id;
+                await _userManager.UpdateAsync(newUser);
+
+                // Assign Player role to the new user
+                await _userManager.AddToRoleAsync(newUser, "Player");
 
                 return Ok(new
                 {
@@ -294,6 +342,7 @@ namespace Dead_Pigeons.Controllers
         // GET: api/auth/admin/players
         // Returns all approved players (excludes admin accounts)
         [HttpGet("admin/players")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllPlayers()
         {
             // Get all admin users
@@ -325,6 +374,7 @@ namespace Dead_Pigeons.Controllers
         // POST: api/auth/admin/toggle-player/{id}/active
         // Toggles player active/inactive status
         [HttpPost("admin/toggle-player/{id}/active")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> TogglePlayerActive(Guid id)
         {
             var player = await _dbContext.Players.FindAsync(id);
@@ -387,4 +437,12 @@ namespace Dead_Pigeons.Controllers
         [Required(ErrorMessage = "Password is required")]
         public string Password { get; set; } = null!;
     }
+}
+
+// JWT Settings - used to generate tokens
+public class JwtSettings
+{
+    public string Secret { get; set; } = null!;
+    public string Issuer { get; set; } = null!;
+    public string Audience { get; set; } = null!;
 }

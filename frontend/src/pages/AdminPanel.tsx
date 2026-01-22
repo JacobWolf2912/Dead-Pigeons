@@ -65,10 +65,10 @@ const AdminPanel: React.FC = () => {
       setPendingPlayers(pendingPlayersRes.data.pendingPlayers);
       setApprovedPlayers(playersRes.data.players);
       setPendingTransactions(transRes.data);
-      setGames(gamesRes.data);
+      setGames(gamesRes.data.games);
 
-      if (gamesRes.data.length > 0) {
-        setSelectedGameId(gamesRes.data[0].id);
+      if (gamesRes.data.games.length > 0) {
+        setSelectedGameId(gamesRes.data.games[0].id);
       }
     } catch (err: any) {
       console.error('Error fetching admin data:', err);

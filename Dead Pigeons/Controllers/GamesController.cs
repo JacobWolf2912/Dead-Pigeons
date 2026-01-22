@@ -4,6 +4,7 @@ using DeadPigeons.Core.Interfaces;
 using DeadPigeons.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Dead_Pigeons.Controllers
 {
@@ -24,28 +25,43 @@ namespace Dead_Pigeons.Controllers
         }
 
         // GET: api/games
-        // Get all games
+        // Get all games sorted by date, with status information
         [HttpGet]
         [AllowAnonymous] // Temporary: for testing purposes
         public async Task<IActionResult> GetAllGames()
         {
             var games = await _gameService.GetAllGamesAsync();
 
-            return Ok(games.Select(g => new
+            // Get the current active game for comparison
+            var currentGame = await _gameService.GetCurrentGameAsync();
+
+            // Sort games by week start date (most recent first)
+            var sortedGames = games.OrderByDescending(g => g.WeekStart).ToList();
+
+            return Ok(new
             {
-                id = g.Id,
-                weekStart = g.WeekStart,
-                drawTime = g.DrawTime,
-                isClosed = g.IsClosed,
-                winningNumbers = g.WinningNumbers != null ? new
+                currentGameId = currentGame?.Id,
+                games = sortedGames.Select(g => new
                 {
-                    number1 = g.WinningNumbers.Number1,
-                    number2 = g.WinningNumbers.Number2,
-                    number3 = g.WinningNumbers.Number3,
-                    drawnAt = g.WinningNumbers.DrawnAt
-                } : null,
-                boardCount = g.Boards.Count
-            }));
+                    id = g.Id,
+                    weekStart = g.WeekStart,
+                    drawTime = g.DrawTime,
+                    isClosed = g.IsClosed,
+                    status = g.IsClosed && g.WinningNumbers != null ? "Completed" :
+                             g.IsClosed && g.WinningNumbers == null ? "Closed-PendingNumbers" :
+                             !g.IsClosed && g.WinningNumbers == null ? "Open" : "Unknown",
+                    isCurrentGame = g.Id == currentGame?.Id,
+                    winningNumbers = g.WinningNumbers != null ? new
+                    {
+                        number1 = g.WinningNumbers.Number1,
+                        number2 = g.WinningNumbers.Number2,
+                        number3 = g.WinningNumbers.Number3,
+                        drawnAt = g.WinningNumbers.DrawnAt
+                    } : null,
+                    boardCount = g.Boards.Count,
+                    winningBoardCount = g.WinningNumbers != null ? g.Boards.Count(b => b.IsWinningBoard) : 0
+                })
+            });
         }
 
         // GET: api/games/{id}
@@ -79,7 +95,7 @@ namespace Dead_Pigeons.Controllers
         }
 
         // GET: api/games/current
-        // Get the current active game
+        // Get the current active game with detailed information
         [HttpGet("current")]
         [AllowAnonymous] // Temporary: for testing purposes
         public async Task<IActionResult> GetCurrentGame()
@@ -90,13 +106,21 @@ namespace Dead_Pigeons.Controllers
                 return NotFound(new { error = "No active game found" });
             }
 
+            // Calculate time remaining before game closes (Saturday 17:00 Copenhagen time)
+            TimeZoneInfo copenhagenZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
+            DateTime copenhagenNow = TimeZoneInfo.ConvertTime(DateTime.Now, copenhagenZone);
+            TimeSpan timeRemaining = game.DrawTime - copenhagenNow;
+
             return Ok(new
             {
                 id = game.Id,
                 weekStart = game.WeekStart,
                 drawTime = game.DrawTime,
                 isClosed = game.IsClosed,
-                boardCount = game.Boards.Count
+                status = "Open",
+                closesAt = $"Saturday 17:00 Copenhagen time",
+                boardCount = game.Boards.Count,
+                hoursRemaining = Math.Max(0, timeRemaining.TotalHours)
             });
         }
 
@@ -272,7 +296,7 @@ namespace Dead_Pigeons.Controllers
         // POST: api/games/create-test-game
         // Temporary endpoint: Create a test game for development/testing
         [HttpPost("create-test-game")]
-        [AllowAnonymous]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateTestGame()
         {
             var game = new Game
@@ -298,6 +322,83 @@ namespace Dead_Pigeons.Controllers
                     weekStart = game.WeekStart,
                     drawTime = game.DrawTime,
                     isClosed = game.IsClosed
+                }
+            });
+        }
+
+        // POST: api/games/reopen-current
+        // Temporary endpoint: Reopen the current game for testing
+        [HttpPost("reopen-current")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ReopenCurrentGame()
+        {
+            var currentGame = await _gameService.GetCurrentGameAsync();
+
+            if (currentGame == null)
+            {
+                // If no current open game, find the most recent closed one and reopen it
+                var lastGame = await _context.Games
+                    .OrderByDescending(g => g.WeekStart)
+                    .FirstOrDefaultAsync();
+
+                if (lastGame == null)
+                {
+                    return BadRequest(new { error = "No games found in database" });
+                }
+
+                lastGame.IsClosed = false;
+                lastGame.WinningNumbers = null;
+                _context.Games.Update(lastGame);
+                await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    message = "Most recent game reopened",
+                    game = new
+                    {
+                        id = lastGame.Id,
+                        weekStart = lastGame.WeekStart,
+                        drawTime = lastGame.DrawTime,
+                        isClosed = lastGame.IsClosed,
+                        boardCount = lastGame.Boards?.Count ?? 0
+                    }
+                });
+            }
+
+            return BadRequest(new { error = "Current game is already open" });
+        }
+
+        // POST: api/games/create-closed-test-game
+        // Temporary endpoint: Create a closed test game ready for drawing winning numbers
+        [HttpPost("create-closed-test-game")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateClosedTestGame()
+        {
+            var game = new Game
+            {
+                Id = Guid.NewGuid(),
+                WeekStart = DateTime.UtcNow.AddDays(-1),
+                DrawTime = DateTime.UtcNow.AddHours(-1), // Closed 1 hour ago
+                IsClosed = true,  // Game is already closed, ready for number drawing
+                WinningNumbers = null,
+                Boards = new List<Board>()
+            };
+
+            // Save to database
+            _context.Games.Add(game);
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Closed test game created (ready for drawing winning numbers)",
+                game = new
+                {
+                    id = game.Id,
+                    weekStart = game.WeekStart,
+                    drawTime = game.DrawTime,
+                    isClosed = game.IsClosed,
+                    boardCount = 0,
+                    hoursUntilExpiry = 24 - ((DateTime.UtcNow - game.DrawTime).TotalHours)
                 }
             });
         }

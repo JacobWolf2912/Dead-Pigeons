@@ -139,7 +139,7 @@ public class GameServiceTests
     {
         // Arrange
         var game = TestDataBuilder.CreateTestGame();
-        game.IsClosed = false;
+        game.IsClosed = true;
         _dbContext.Games.Add(game);
         await _dbContext.SaveChangesAsync();
 
@@ -160,6 +160,7 @@ public class GameServiceTests
     {
         // Arrange
         var game = TestDataBuilder.CreateTestGame();
+        game.IsClosed = true;
         _dbContext.Games.Add(game);
         await _dbContext.SaveChangesAsync();
 
@@ -182,6 +183,7 @@ public class GameServiceTests
     {
         // Arrange
         var game = TestDataBuilder.CreateTestGame();
+        game.IsClosed = true;
         _dbContext.Games.Add(game);
         await _dbContext.SaveChangesAsync();
 
@@ -198,6 +200,7 @@ public class GameServiceTests
     {
         // Arrange
         var game = TestDataBuilder.CreateTestGame();
+        game.IsClosed = true;
         _dbContext.Games.Add(game);
         await _dbContext.SaveChangesAsync();
 
@@ -221,11 +224,11 @@ public class GameServiceTests
     }
 
     [Fact]
-    public async Task DrawWinningNumbersAsync_WithAlreadyClosedGame_ThrowsInvalidOperationException()
+    public async Task DrawWinningNumbersAsync_WithOpenGame_ThrowsInvalidOperationException()
     {
         // Arrange
         var game = TestDataBuilder.CreateTestGame();
-        game.IsClosed = true;
+        game.IsClosed = false;
         _dbContext.Games.Add(game);
         await _dbContext.SaveChangesAsync();
 
@@ -234,7 +237,7 @@ public class GameServiceTests
             () => _gameService.DrawWinningNumbersAsync(game.Id, 1, 2, 3)
         );
 
-        Assert.Contains("already closed", exception.Message);
+        Assert.Contains("must be closed", exception.Message);
     }
 
     [Fact]
@@ -242,6 +245,7 @@ public class GameServiceTests
     {
         // Arrange
         var game = TestDataBuilder.CreateTestGame();
+        game.IsClosed = true;
         var winningNumbers = TestDataBuilder.CreateTestWinningNumbers(game.Id);
         game.WinningNumbers = winningNumbers;
         _dbContext.Games.Add(game);

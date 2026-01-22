@@ -44,9 +44,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
     try {
       const response = await authService.login(email, password);
-      const { user: userData } = response.data;
-      // Generate a simple JWT-like token (in real app, backend should return this)
-      const token = btoa(JSON.stringify(userData));
+      const { user: userData, token } = response.data;
+      // Use the real JWT token returned from backend
       localStorage.setItem('authToken', token);
       localStorage.setItem('userRole', userData.isAdmin ? 'admin' : 'player');
       setUser(userData);

@@ -131,7 +131,7 @@ namespace DeadPigeons.Infrastructure.Migrations
 
                     b.HasIndex("PlayerId");
 
-                    b.ToTable("Boards");
+                    b.ToTable("Boards", (string)null);
                 });
 
             modelBuilder.Entity("DeadPigeons.Core.Entities.BoardNumber", b =>
@@ -150,7 +150,7 @@ namespace DeadPigeons.Infrastructure.Migrations
 
                     b.HasIndex("BoardId");
 
-                    b.ToTable("BoardNumbers");
+                    b.ToTable("BoardNumbers", (string)null);
                 });
 
             modelBuilder.Entity("DeadPigeons.Core.Entities.Game", b =>
@@ -170,7 +170,7 @@ namespace DeadPigeons.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Games");
+                    b.ToTable("Games", (string)null);
                 });
 
             modelBuilder.Entity("DeadPigeons.Core.Entities.GameWinningNumbers", b =>
@@ -199,7 +199,7 @@ namespace DeadPigeons.Infrastructure.Migrations
                     b.HasIndex("GameId")
                         .IsUnique();
 
-                    b.ToTable("GameWinningNumbers");
+                    b.ToTable("GameWinningNumbers", (string)null);
                 });
 
             modelBuilder.Entity("DeadPigeons.Core.Entities.PendingPlayer", b =>
@@ -230,7 +230,7 @@ namespace DeadPigeons.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PendingPlayers");
+                    b.ToTable("PendingPlayers", (string)null);
                 });
 
             modelBuilder.Entity("DeadPigeons.Core.Entities.Player", b =>
@@ -260,7 +260,7 @@ namespace DeadPigeons.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Players");
+                    b.ToTable("Players", (string)null);
                 });
 
             modelBuilder.Entity("DeadPigeons.Core.Entities.Transaction", b =>
@@ -294,7 +294,7 @@ namespace DeadPigeons.Infrastructure.Migrations
 
                     b.HasIndex("PlayerId");
 
-                    b.ToTable("Transactions");
+                    b.ToTable("Transactions", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>

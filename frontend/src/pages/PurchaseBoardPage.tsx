@@ -39,7 +39,7 @@ const PurchaseBoardPage: React.FC = () => {
           transactionService.getBalance(user.playerId!),
         ]);
 
-        const activeGames = gamesRes.data.filter((g: Game) => !g.isClosed);
+        const activeGames = gamesRes.data.games.filter((g: Game) => !g.isClosed);
         setGames(activeGames);
         setBalance((balanceRes.data as BalanceResponse).balance);
 

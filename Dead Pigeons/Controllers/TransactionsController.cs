@@ -130,7 +130,7 @@ namespace Dead_Pigeons.Controllers
         // GET: api/transactions/pending
         // Only admin can see all pending transactions
         [HttpGet("pending")]
-        [AllowAnonymous] // Temporary: for testing purposes
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetPendingTransactions()
         {
             var transactions = await _transactionService.GetPendingTransactionsAsync();
@@ -150,7 +150,7 @@ namespace Dead_Pigeons.Controllers
         // POST: api/transactions/{id}/approve
         // Only admin can approve pending transactions (optionally with edited amount)
         [HttpPost("{id}/approve")]
-        [AllowAnonymous] // Temporary: for testing purposes
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ApproveTransaction(Guid id, [FromBody] ApproveTransactionRequest? request = null)
         {
             var transaction = await _transactionService.GetTransactionAsync(id);
@@ -190,7 +190,7 @@ namespace Dead_Pigeons.Controllers
         // POST: api/transactions/{id}/dismiss
         // Only admin can dismiss pending transactions
         [HttpPost("{id}/dismiss")]
-        [AllowAnonymous] // Temporary: for testing purposes
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DismissTransaction(Guid id)
         {
             var transaction = await _transactionService.GetTransactionAsync(id);

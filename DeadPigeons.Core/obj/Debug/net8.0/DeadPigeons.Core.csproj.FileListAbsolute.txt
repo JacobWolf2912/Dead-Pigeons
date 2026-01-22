@@ -11,3 +11,16 @@ C:\Users\matej\Desktop\VisualStudio projects\Dead Pigeons\DeadPigeons.Core\obj\D
 C:\Users\matej\Desktop\VisualStudio projects\Dead Pigeons\DeadPigeons.Core\obj\Debug\net8.0\refint\DeadPigeons.Core.dll
 C:\Users\matej\Desktop\VisualStudio projects\Dead Pigeons\DeadPigeons.Core\obj\Debug\net8.0\DeadPigeons.Core.pdb
 C:\Users\matej\Desktop\VisualStudio projects\Dead Pigeons\DeadPigeons.Core\obj\Debug\net8.0\ref\DeadPigeons.Core.dll
+C:\Users\matej\source\repos\JacobWolf2912\Dead-Pigeons\DeadPigeons.Core\bin\Debug\net8.0\DeadPigeons.Core.deps.json
+C:\Users\matej\source\repos\JacobWolf2912\Dead-Pigeons\DeadPigeons.Core\bin\Debug\net8.0\DeadPigeons.Core.dll
+C:\Users\matej\source\repos\JacobWolf2912\Dead-Pigeons\DeadPigeons.Core\bin\Debug\net8.0\DeadPigeons.Core.pdb
+C:\Users\matej\source\repos\JacobWolf2912\Dead-Pigeons\DeadPigeons.Core\obj\Debug\net8.0\DeadPigeons.Core.csproj.AssemblyReference.cache
+C:\Users\matej\source\repos\JacobWolf2912\Dead-Pigeons\DeadPigeons.Core\obj\Debug\net8.0\DeadPigeons.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\matej\source\repos\JacobWolf2912\Dead-Pigeons\DeadPigeons.Core\obj\Debug\net8.0\DeadPigeons.Core.AssemblyInfoInputs.cache
+C:\Users\matej\source\repos\JacobWolf2912\Dead-Pigeons\DeadPigeons.Core\obj\Debug\net8.0\DeadPigeons.Core.AssemblyInfo.cs
+C:\Users\matej\source\repos\JacobWolf2912\Dead-Pigeons\DeadPigeons.Core\obj\Debug\net8.0\DeadPigeons.Core.csproj.CoreCompileInputs.cache
+C:\Users\matej\source\repos\JacobWolf2912\Dead-Pigeons\DeadPigeons.Core\obj\Debug\net8.0\DeadPigeons.Core.sourcelink.json
+C:\Users\matej\source\repos\JacobWolf2912\Dead-Pigeons\DeadPigeons.Core\obj\Debug\net8.0\DeadPigeons.Core.dll
+C:\Users\matej\source\repos\JacobWolf2912\Dead-Pigeons\DeadPigeons.Core\obj\Debug\net8.0\refint\DeadPigeons.Core.dll
+C:\Users\matej\source\repos\JacobWolf2912\Dead-Pigeons\DeadPigeons.Core\obj\Debug\net8.0\DeadPigeons.Core.pdb
+C:\Users\matej\source\repos\JacobWolf2912\Dead-Pigeons\DeadPigeons.Core\obj\Debug\net8.0\ref\DeadPigeons.Core.dll
