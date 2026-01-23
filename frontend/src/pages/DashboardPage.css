@@ -164,7 +164,6 @@
 }
 
 .board-card {
-  aspect-ratio: 1;
   background: white;
   border: 2px solid #ddd;
   border-radius: 10px;
@@ -172,8 +171,15 @@
   cursor: pointer;
   transition: all 0.3s;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  min-height: 550px;
+}
+
+.board-card.winning-board {
+  border-color: #4caf50;
+  background: #f1f8e9;
 }
 
 .board-card:hover {
@@ -182,11 +188,17 @@
   transform: translateY(-3px);
 }
 
+.board-card.winning-board:hover {
+  border-color: #4caf50;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
 .board-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
   width: 100%;
+  max-width: 400px;
 }
 
 .board-number {
@@ -208,6 +220,46 @@
   color: white;
   border-color: #ff9800;
   box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+}
+
+/* Board Info Section */
+.board-info {
+  width: 100%;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #e0e0e0;
+  text-align: center;
+}
+
+.board-week {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.winning-badge {
+  padding: 12px;
+  background: #c8e6c9;
+  border: 1px solid #4caf50;
+  border-radius: 6px;
+  margin-top: 10px;
+}
+
+.winning-text {
+  margin: 0;
+  font-size: 16px;
+  font-weight: bold;
+  color: #2e7d32;
+  margin-bottom: 5px;
+}
+
+.winning-numbers {
+  margin: 0;
+  font-size: 13px;
+  color: #1b5e20;
+  font-weight: 500;
 }
 
 /* New Board Button */

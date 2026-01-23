@@ -286,6 +286,7 @@ namespace Dead_Pigeons.Controllers
                 {
                     id = b.Id,
                     playerId = b.PlayerId,
+                    playerName = b.Player?.FullName ?? "Unknown",
                     fieldCount = b.FieldCount,
                     price = b.Price,
                     numbers = b.Numbers.Select(bn => bn.Number).OrderBy(n => n).ToList()

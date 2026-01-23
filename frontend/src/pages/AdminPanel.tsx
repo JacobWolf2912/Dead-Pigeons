@@ -25,11 +25,12 @@ interface Player {
 const AdminPanel: React.FC = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
-  const [activeTab, setActiveTab] = useState<'pendingPlayers' | 'players' | 'transactions' | 'games'>('pendingPlayers');
+  const [activeTab, setActiveTab] = useState<'pendingPlayers' | 'players' | 'transactions' | 'games' | 'winningBoards'>('pendingPlayers');
   const [pendingPlayers, setPendingPlayers] = useState<PendingPlayer[]>([]);
   const [approvedPlayers, setApprovedPlayers] = useState<Player[]>([]);
   const [pendingTransactions, setPendingTransactions] = useState<PendingTransaction[]>([]);
   const [games, setGames] = useState<Game[]>([]);
+  const [winningBoards, setWinningBoards] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [approving, setApproving] = useState<string | null>(null);
@@ -70,6 +71,27 @@ const AdminPanel: React.FC = () => {
       if (gamesRes.data.games.length > 0) {
         setSelectedGameId(gamesRes.data.games[0].id);
       }
+
+      // Fetch winning boards from all games
+      const allWinningBoards: any[] = [];
+      for (const game of gamesRes.data.games) {
+        if (game.winningNumbers) {
+          try {
+            const boardsRes = await gameService.getWinningBoards(game.id);
+            if (boardsRes.data.winningBoards && boardsRes.data.winningBoards.length > 0) {
+              const boardsWithGameInfo = boardsRes.data.winningBoards.map((board: any) => ({
+                ...board,
+                gameId: game.id,
+                weekNumber: `Week of ${new Date(game.weekStart).toLocaleDateString()}`,
+              }));
+              allWinningBoards.push(...boardsWithGameInfo);
+            }
+          } catch (err) {
+            console.error(`Error fetching winning boards for game ${game.id}:`, err);
+          }
+        }
+      }
+      setWinningBoards(allWinningBoards);
     } catch (err: any) {
       console.error('Error fetching admin data:', err);
       setError('Failed to load admin data. Please try again.');
@@ -294,6 +316,12 @@ const AdminPanel: React.FC = () => {
             onClick={() => setActiveTab('games')}
           >
             Draw Numbers
+          </button>
+          <button
+            className={`admin-tab ${activeTab === 'winningBoards' ? 'active' : ''}`}
+            onClick={() => setActiveTab('winningBoards')}
+          >
+            Winning Boards
           </button>
         </div>
 
@@ -564,6 +592,40 @@ const AdminPanel: React.FC = () => {
               </div>
             )}
           </div>
+          )}
+
+          {activeTab === 'winningBoards' && (
+            <div className="admin-section">
+              <h2>Winning Boards</h2>
+              {loading ? (
+                <p className="loading">Loading winning boards...</p>
+              ) : winningBoards.length === 0 ? (
+                <p className="empty-state">No winning boards yet.</p>
+              ) : (
+                <div className="winning-boards-grid">
+                  {winningBoards.map((board) => (
+                    <div key={board.id} className="winning-board-card">
+                      <div className="winning-board-numbers">
+                        {Array.from({ length: 16 }, (_, i) => i + 1).map((num) => (
+                          <div
+                            key={num}
+                            className={`winning-board-number ${
+                              board.numbers.includes(num) ? 'selected' : ''
+                            }`}
+                          >
+                            {num}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="winning-board-info">
+                        <p className="player-name">👤 {board.playerName}</p>
+                        <p className="board-week">{board.weekNumber}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

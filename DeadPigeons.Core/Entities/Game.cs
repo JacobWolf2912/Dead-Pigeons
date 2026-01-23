@@ -18,5 +18,9 @@ namespace DeadPigeons.Core.Entities
         // WinningNumbers can be null until admin draws the numbers for this game
         public GameWinningNumbers? WinningNumbers { get; set; }
         public ICollection<Board> Boards { get; set; } = new List<Board>();
+
+        public bool IsDeleted { get; set; } = false;
+
+        public DateTime? DeletedAt { get; set; }
     }
 }

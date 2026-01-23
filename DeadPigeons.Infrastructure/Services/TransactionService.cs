@@ -39,12 +39,12 @@ namespace DeadPigeons.Infrastructure.Services
         {
             // Get sum of all approved deposits for this player
             var approvedTransactions = await _context.Transactions
-                .Where(t => t.PlayerId == playerId && t.IsApproved)
+                .Where(t => t.PlayerId == playerId && t.IsApproved && !t.IsDeleted)
                 .SumAsync(t => t.Amount);
 
             // Get sum of all board purchases for this player
             var boardPurchases = await _context.Boards
-                .Where(b => b.PlayerId == playerId)
+                .Where(b => b.PlayerId == playerId && !b.IsDeleted)
                 .SumAsync(b => b.Price);
 
             // Balance is deposits minus purchases
@@ -104,7 +104,7 @@ namespace DeadPigeons.Infrastructure.Services
         public async Task<IEnumerable<Transaction>> GetPendingTransactionsAsync()
         {
             return await _context.Transactions
-                .Where(t => !t.IsApproved)
+                .Where(t => !t.IsApproved && !t.IsDeleted)
                 .Include(t => t.Player)
                 .OrderBy(t => t.CreatedAt)
                 .ToListAsync();

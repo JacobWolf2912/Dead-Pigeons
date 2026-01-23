@@ -25,5 +25,9 @@ namespace DeadPigeons.Core.Entities
 
         // Transaction status: pending (false) or approved (true)
         public bool IsApproved { get; set; } = false;
+
+        public bool IsDeleted { get; set; } = false;
+
+        public DateTime? DeletedAt { get; set; }
     }
 }

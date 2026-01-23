@@ -108,10 +108,18 @@ namespace Dead_Pigeons.Controllers
             {
                 id = b.Id,
                 gameId = b.GameId,
+                weekStart = b.Game?.WeekStart,
+                weekNumber = b.Game != null ? $"Week of {new DateTime(b.Game.WeekStart.Year, b.Game.WeekStart.Month, b.Game.WeekStart.Day):MMM dd, yyyy}" : "Unknown",
                 fieldCount = b.FieldCount,
                 price = b.Price,
                 numbers = b.Numbers.Select(bn => bn.Number).OrderBy(n => n).ToList(),
                 isWinning = b.IsWinningBoard,
+                winningNumbers = b.Game?.WinningNumbers != null ? new
+                {
+                    number1 = b.Game.WinningNumbers.Number1,
+                    number2 = b.Game.WinningNumbers.Number2,
+                    number3 = b.Game.WinningNumbers.Number3
+                } : null,
                 createdAt = b.CreatedAt
             }));
         }

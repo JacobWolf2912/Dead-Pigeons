@@ -22,5 +22,9 @@ namespace DeadPigeons.Core.Entities
         public string PasswordHash { get; set; } = null!;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public bool IsDeleted { get; set; } = false;
+
+        public DateTime? DeletedAt { get; set; }
     }
 }

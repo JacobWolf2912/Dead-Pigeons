@@ -47,12 +47,12 @@ public class PlayerService : IPlayerService
 
     public async Task<Player?> GetByIdAsync(Guid id)
     {
-        return await _context.Players.FindAsync(id);
+        return await _context.Players.FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);
     }
 
     public async Task<IEnumerable<Player>> GetAllAsync()
     {
-        return await _context.Players.AsNoTracking().ToListAsync();
+        return await _context.Players.Where(p => !p.IsDeleted).AsNoTracking().ToListAsync();
     }
 
     public async Task UpdateAsync(Player player)
@@ -63,7 +63,7 @@ public class PlayerService : IPlayerService
 
     public async Task SetActiveStatusAsync(Guid playerId, bool isActive)
     {
-        var player = await _context.Players.FindAsync(playerId);
+        var player = await _context.Players.FirstOrDefaultAsync(p => p.Id == playerId && !p.IsDeleted);
 
         if (player == null)
             throw new InvalidOperationException("Player not found");

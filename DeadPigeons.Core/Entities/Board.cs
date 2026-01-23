@@ -10,6 +10,8 @@ namespace DeadPigeons.Core.Entities
         [Required]
         public Guid PlayerId { get; set; }
 
+        public Player? Player { get; set; }
+
         [Required]
         public Guid GameId { get; set; }
 
@@ -26,6 +28,10 @@ namespace DeadPigeons.Core.Entities
         public bool IsWinningBoard { get; set; } = false;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public bool IsDeleted { get; set; } = false;
+
+        public DateTime? DeletedAt { get; set; }
 
         // Numbers selected on this board (5-8 numbers between 1-16)
         public ICollection<BoardNumber> Numbers { get; set; } = new List<BoardNumber>();

@@ -26,12 +26,12 @@ namespace DeadPigeons.Infrastructure.Repositories
 
         public async Task<Player?> GetByIdAsync(Guid id)
         {
-            return await _context.Players.FindAsync(id);
+            return await _context.Players.FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);
         }
 
         public async Task<IEnumerable<Player>> GetAllAsync()
         {
-            return await _context.Players.ToListAsync();
+            return await _context.Players.Where(p => !p.IsDeleted).ToListAsync();
         }
 
         public async Task UpdateAsync(Player player)

@@ -36,10 +36,13 @@ export interface BalanceResponse {
 export interface Board {
   id: string;
   gameId: string;
+  weekStart?: string;
+  weekNumber?: string;
   fieldCount: number;
   price: number;
   numbers: number[];
   isWinning?: boolean;
+  winningNumbers?: WinningNumbers;
   createdAt: string;
 }
 

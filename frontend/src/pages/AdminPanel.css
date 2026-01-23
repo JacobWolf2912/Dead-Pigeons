@@ -527,8 +527,86 @@
   }
 }
 
+/* Winning Boards Grid - Smaller size than player boards */
+.winning-boards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.winning-board-card {
+  background: #f1f8e9;
+  border: 2px solid #4caf50;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.3s;
+}
+
+.winning-board-card:hover {
+  border-color: #388e3c;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  transform: translateY(-2px);
+}
+
+.winning-board-numbers {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.winning-board-number {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 12px;
+  color: #333;
+}
+
+.winning-board-number.selected {
+  background-color: #4caf50;
+  color: white;
+  border-color: #4caf50;
+  font-weight: bold;
+}
+
+.winning-board-info {
+  width: 100%;
+  text-align: center;
+  border-top: 1px solid #c8e6c9;
+  padding-top: 8px;
+}
+
+.player-name {
+  margin: 0 0 4px 0;
+  font-size: 12px;
+  color: #2e7d32;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.board-week {
+  margin: 0;
+  font-size: 11px;
+  color: #666;
+}
+
 @media (max-width: 600px) {
   .players-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .winning-boards-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }

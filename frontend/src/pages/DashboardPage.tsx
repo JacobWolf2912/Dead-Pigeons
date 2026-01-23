@@ -169,7 +169,7 @@ const DashboardPage: React.FC = () => {
               ) : (
                 <div className="boards-grid">
                   {boards.map((board) => (
-                    <div key={board.id} className="board-card">
+                    <div key={board.id} className={`board-card ${board.isWinning ? 'winning-board' : ''}`}>
                       <div className="board-grid">
                         {Array.from({ length: 16 }, (_, i) => i + 1).map((num) => (
                           <div
@@ -181,6 +181,19 @@ const DashboardPage: React.FC = () => {
                             {num}
                           </div>
                         ))}
+                      </div>
+                      <div className="board-info">
+                        <p className="board-week">{board.weekNumber}</p>
+                        {board.isWinning && (
+                          <div className="winning-badge">
+                            <p className="winning-text">✓ WINNING BOARD</p>
+                            {board.winningNumbers && (
+                              <p className="winning-numbers">
+                                Numbers: {board.winningNumbers.number1}, {board.winningNumbers.number2}, {board.winningNumbers.number3}
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

@@ -20,6 +20,7 @@ namespace DeadPigeons.Infrastructure.Services
         public async Task<IEnumerable<Game>> GetAllGamesAsync()
         {
             return await _context.Games
+                .Where(g => !g.IsDeleted)
                 .Include(g => g.WinningNumbers)
                 .Include(g => g.Boards)
                 .OrderByDescending(g => g.WeekStart)
@@ -32,14 +33,14 @@ namespace DeadPigeons.Infrastructure.Services
             return await _context.Games
                 .Include(g => g.WinningNumbers)
                 .Include(g => g.Boards)
-                .FirstOrDefaultAsync(g => g.Id == gameId);
+                .FirstOrDefaultAsync(g => g.Id == gameId && !g.IsDeleted);
         }
 
         // Get the current active game (not closed, has no winning numbers yet)
         public async Task<Game?> GetCurrentGameAsync()
         {
             return await _context.Games
-                .Where(g => !g.IsClosed && g.WinningNumbers == null)
+                .Where(g => !g.IsClosed && g.WinningNumbers == null && !g.IsDeleted)
                 .Include(g => g.Boards)
                 .FirstOrDefaultAsync();
         }
@@ -58,7 +59,7 @@ namespace DeadPigeons.Infrastructure.Services
             var game = await _context.Games
                 .Include(g => g.Boards)
                 .ThenInclude(b => b.Numbers)
-                .FirstOrDefaultAsync(g => g.Id == gameId);
+                .FirstOrDefaultAsync(g => g.Id == gameId && !g.IsDeleted);
 
             if (game == null)
             {
@@ -113,7 +114,7 @@ namespace DeadPigeons.Infrastructure.Services
         public async Task<IEnumerable<Board>> GetWinningBoardsForGameAsync(Guid gameId)
         {
             return await _context.Boards
-                .Where(b => b.GameId == gameId && b.IsWinningBoard)
+                .Where(b => b.GameId == gameId && b.IsWinningBoard && !b.IsDeleted)
                 .Include(b => b.Numbers)
                 .ToListAsync();
         }
@@ -124,7 +125,7 @@ namespace DeadPigeons.Infrastructure.Services
         {
             // Find the first inactive, unstarted game
             var nextGame = await _context.Games
-                .Where(g => g.WinningNumbers == null && !g.IsClosed)
+                .Where(g => g.WinningNumbers == null && !g.IsClosed && !g.IsDeleted)
                 .OrderBy(g => g.WeekStart)
                 .FirstOrDefaultAsync();
 

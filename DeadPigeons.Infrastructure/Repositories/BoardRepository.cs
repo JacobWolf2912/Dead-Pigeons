@@ -25,13 +25,13 @@ namespace DeadPigeons.Infrastructure.Repositories
         {
             return await _context.Boards
                 .Include(b => b.Numbers)
-                .FirstOrDefaultAsync(b => b.Id == id);
+                .FirstOrDefaultAsync(b => b.Id == id && !b.IsDeleted);
         }
 
         public async Task<IEnumerable<Board>> GetByPlayerIdAsync(Guid playerId)
         {
             return await _context.Boards
-                .Where(b => b.PlayerId == playerId)
+                .Where(b => b.PlayerId == playerId && !b.IsDeleted)
                 .Include(b => b.Numbers)
                 .Include(b => b.Game)
                 .OrderByDescending(b => b.CreatedAt)
@@ -41,7 +41,7 @@ namespace DeadPigeons.Infrastructure.Repositories
         public async Task<IEnumerable<Board>> GetByGameIdAsync(Guid gameId)
         {
             return await _context.Boards
-                .Where(b => b.GameId == gameId)
+                .Where(b => b.GameId == gameId && !b.IsDeleted)
                 .Include(b => b.Numbers)
                 .ToListAsync();
         }
@@ -50,6 +50,7 @@ namespace DeadPigeons.Infrastructure.Repositories
         {
             return await _context.Boards
                 .Include(b => b.Numbers)
+                .Where(b => !b.IsDeleted)
                 .OrderByDescending(b => b.CreatedAt)
                 .ToListAsync();
         }

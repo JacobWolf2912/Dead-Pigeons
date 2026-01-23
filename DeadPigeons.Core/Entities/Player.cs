@@ -23,6 +23,10 @@ namespace DeadPigeons.Core.Entities
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        public bool IsDeleted { get; set; } = false;
+
+        public DateTime? DeletedAt { get; set; }
+
         // Navigation property - a player can have many boards
         public ICollection<Board> Boards { get; set; } = new List<Board>();
     }

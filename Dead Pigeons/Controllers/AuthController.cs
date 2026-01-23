@@ -114,7 +114,7 @@ namespace Dead_Pigeons.Controllers
                 return BadRequest(new { error = "Email already registered" });
             }
 
-            var existingPending = _dbContext.PendingPlayers.FirstOrDefault(p => p.Email == request.Email);
+            var existingPending = _dbContext.PendingPlayers.FirstOrDefault(p => p.Email == request.Email && !p.IsDeleted);
             if (existingPending != null)
             {
                 return BadRequest(new { error = "Email already pending approval" });
@@ -180,7 +180,7 @@ namespace Dead_Pigeons.Controllers
             if (!isAdmin)
             {
                 // Check if player record exists and is active (only for non-admin users)
-                var player = await _dbContext.Players.FindAsync(user.PlayerId);
+                var player = await _dbContext.Players.FirstOrDefaultAsync(p => p.Id == user.PlayerId && !p.IsDeleted);
                 if (player == null || !player.IsActive)
                 {
                     return BadRequest(new { error = "Please wait for the Admin to approve your account." });
@@ -249,6 +249,7 @@ namespace Dead_Pigeons.Controllers
         public async Task<IActionResult> GetPendingPlayers()
         {
             var pendingPlayers = await _dbContext.PendingPlayers
+                .Where(p => !p.IsDeleted)
                 .OrderBy(p => p.CreatedAt)
                 .ToListAsync();
 
@@ -270,7 +271,7 @@ namespace Dead_Pigeons.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ApprovePlayer(Guid id)
         {
-            var pendingPlayer = await _dbContext.PendingPlayers.FindAsync(id);
+            var pendingPlayer = await _dbContext.PendingPlayers.FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);
             if (pendingPlayer == null)
             {
                 return NotFound(new { error = "Pending player not found" });
@@ -354,7 +355,7 @@ namespace Dead_Pigeons.Controllers
 
             // Get all players except those linked to admin accounts
             var players = await _dbContext.Players
-                .Where(p => !adminPlayerIds.Contains(p.Id))
+                .Where(p => !adminPlayerIds.Contains(p.Id) && !p.IsDeleted)
                 .OrderBy(p => p.FullName)
                 .ToListAsync();
 
@@ -377,7 +378,7 @@ namespace Dead_Pigeons.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> TogglePlayerActive(Guid id)
         {
-            var player = await _dbContext.Players.FindAsync(id);
+            var player = await _dbContext.Players.FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);
             if (player == null)
             {
                 return NotFound(new { error = "Player not found" });
