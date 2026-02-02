@@ -17,8 +17,7 @@ public class Startup
         // Start the TestContainer SQL Server once
         if (_container == null)
         {
-            _container = new MsSqlBuilder()
-                .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
+            _container = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest")
                 .Build();
 
             await _container.StartAsync();
