@@ -1,6 +1,6 @@
 using DeadPigeons.Core.Entities;
 
-namespace DeadPigeons.Test.Helpers;
+namespace DeadPigeons.xUnit.Helpers;
 
 public static class TestDataBuilder
 {
@@ -12,7 +12,7 @@ public static class TestDataBuilder
             FullName = fullName,
             Email = email,
             PhoneNumber = phoneNumber,
-            IsActive = true,
+            IsActive = false,
             CreatedAt = DateTime.UtcNow
         };
     }

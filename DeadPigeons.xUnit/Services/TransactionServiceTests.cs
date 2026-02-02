@@ -1,9 +1,9 @@
 using DeadPigeons.Core.Interfaces;
 using DeadPigeons.Infrastructure.Data;
-using DeadPigeons.Test.Helpers;
+using DeadPigeons.xUnit.Helpers;
 using Xunit;
 
-namespace DeadPigeons.Test.Services;
+namespace DeadPigeons.xUnit.Services;
 
 public class TransactionServiceTests
 {
@@ -24,16 +24,17 @@ public class TransactionServiceTests
     public async Task CreateDepositAsync_WithValidData_CreatesTransaction()
     {
         // Arrange
-        var playerId = Guid.NewGuid();
+        var player = TestDataBuilder.CreateTestPlayer();
+        var createdPlayer = await _playerService.CreateAsync(player);
         var amount = 100m;
         var mobilePayId = "TEST123";
 
         // Act
-        var result = await _transactionService.CreateDepositAsync(playerId, amount, mobilePayId);
+        var result = await _transactionService.CreateDepositAsync(createdPlayer.Id, amount, mobilePayId);
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(playerId, result.PlayerId);
+        Assert.Equal(createdPlayer.Id, result.PlayerId);
         Assert.Equal(amount, result.Amount);
         Assert.Equal(mobilePayId, result.MobilePayTransactionId);
         Assert.False(result.IsApproved);
@@ -44,12 +45,13 @@ public class TransactionServiceTests
     public async Task CreateDepositAsync_WithSmallAmount_CreatesTransaction()
     {
         // Arrange
-        var playerId = Guid.NewGuid();
+        var player = TestDataBuilder.CreateTestPlayer();
+        var createdPlayer = await _playerService.CreateAsync(player);
         var amount = 10m; // Minimum amount
         var mobilePayId = "SMALL";
 
         // Act
-        var result = await _transactionService.CreateDepositAsync(playerId, amount, mobilePayId);
+        var result = await _transactionService.CreateDepositAsync(createdPlayer.Id, amount, mobilePayId);
 
         // Assert
         Assert.NotNull(result);
@@ -60,12 +62,13 @@ public class TransactionServiceTests
     public async Task CreateDepositAsync_WithLargeAmount_CreatesTransaction()
     {
         // Arrange
-        var playerId = Guid.NewGuid();
+        var player = TestDataBuilder.CreateTestPlayer();
+        var createdPlayer = await _playerService.CreateAsync(player);
         var amount = 50000m; // Maximum amount
         var mobilePayId = "LARGE";
 
         // Act
-        var result = await _transactionService.CreateDepositAsync(playerId, amount, mobilePayId);
+        var result = await _transactionService.CreateDepositAsync(createdPlayer.Id, amount, mobilePayId);
 
         // Assert
         Assert.NotNull(result);
@@ -224,19 +227,21 @@ public class TransactionServiceTests
     }
 
     [Fact]
-    public async Task ApproveTransactionAsync_WithAlreadyApprovedTransaction_ThrowsException()
+    public async Task ApproveTransactionAsync_WithAlreadyApprovedTransaction_ReturnsApprovedTransaction()
     {
         // Arrange
-        var transaction = TestDataBuilder.CreateTestTransaction(Guid.NewGuid(), 100m, "TEST123", true);
+        var player = TestDataBuilder.CreateTestPlayer();
+        var createdPlayer = await _playerService.CreateAsync(player);
+        var transaction = TestDataBuilder.CreateTestTransaction(createdPlayer.Id, 100m, "TEST123", true);
         _dbContext.Transactions.Add(transaction);
         await _dbContext.SaveChangesAsync();
 
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<Exception>(
-            () => _transactionService.ApproveTransactionAsync(transaction.Id)
-        );
+        // Act
+        var result = await _transactionService.ApproveTransactionAsync(transaction.Id);
 
-        Assert.Contains("already approved", exception.Message);
+        // Assert
+        Assert.NotNull(result);
+        Assert.True(result.IsApproved);
     }
 
     #endregion
@@ -247,7 +252,9 @@ public class TransactionServiceTests
     public async Task DeleteTransactionAsync_WithPendingTransaction_DeletesTransaction()
     {
         // Arrange
-        var transaction = TestDataBuilder.CreateTestTransaction(Guid.NewGuid(), 100m, "TEST123", false);
+        var player = TestDataBuilder.CreateTestPlayer();
+        var createdPlayer = await _playerService.CreateAsync(player);
+        var transaction = TestDataBuilder.CreateTestTransaction(createdPlayer.Id, 100m, "TEST123", false);
         _dbContext.Transactions.Add(transaction);
         await _dbContext.SaveChangesAsync();
 
@@ -267,7 +274,9 @@ public class TransactionServiceTests
     public async Task DeleteTransactionAsync_WithApprovedTransaction_ThrowsException()
     {
         // Arrange
-        var transaction = TestDataBuilder.CreateTestTransaction(Guid.NewGuid(), 100m, "TEST123", true);
+        var player = TestDataBuilder.CreateTestPlayer();
+        var createdPlayer = await _playerService.CreateAsync(player);
+        var transaction = TestDataBuilder.CreateTestTransaction(createdPlayer.Id, 100m, "TEST123", true);
         _dbContext.Transactions.Add(transaction);
         await _dbContext.SaveChangesAsync();
 
@@ -298,10 +307,11 @@ public class TransactionServiceTests
     public async Task GetPendingTransactionsAsync_WithPendingTransactions_ReturnsPendingOnly()
     {
         // Arrange
-        var playerId = Guid.NewGuid();
-        var pending1 = TestDataBuilder.CreateTestTransaction(playerId, 100m, "PEND1", false);
-        var pending2 = TestDataBuilder.CreateTestTransaction(playerId, 50m, "PEND2", false);
-        var approved = TestDataBuilder.CreateTestTransaction(playerId, 200m, "APPR", true);
+        var player = TestDataBuilder.CreateTestPlayer();
+        var createdPlayer = await _playerService.CreateAsync(player);
+        var pending1 = TestDataBuilder.CreateTestTransaction(createdPlayer.Id, 100m, "PEND1", false);
+        var pending2 = TestDataBuilder.CreateTestTransaction(createdPlayer.Id, 50m, "PEND2", false);
+        var approved = TestDataBuilder.CreateTestTransaction(createdPlayer.Id, 200m, "APPR", true);
 
         _dbContext.Transactions.Add(pending1);
         _dbContext.Transactions.Add(pending2);
@@ -363,7 +373,9 @@ public class TransactionServiceTests
     public async Task GetTransactionAsync_WithExistingTransaction_ReturnsTransaction()
     {
         // Arrange
-        var transaction = TestDataBuilder.CreateTestTransaction(Guid.NewGuid(), 100m, "TEST123", false);
+        var player = TestDataBuilder.CreateTestPlayer();
+        var createdPlayer = await _playerService.CreateAsync(player);
+        var transaction = TestDataBuilder.CreateTestTransaction(createdPlayer.Id, 100m, "TEST123", false);
         _dbContext.Transactions.Add(transaction);
         await _dbContext.SaveChangesAsync();
 

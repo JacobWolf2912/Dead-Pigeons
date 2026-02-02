@@ -6,13 +6,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.MsSql;
 
-namespace DeadPigeons.Test;
+namespace DeadPigeons.xUnit;
 
 public class Startup
 {
     private static MsSqlContainer? _container;
 
-    public async void ConfigureServices(IServiceCollection services)
+    public void ConfigureServices(IServiceCollection services)
     {
         // Start the TestContainer SQL Server once
         if (_container == null)
@@ -20,7 +20,7 @@ public class Startup
             _container = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest")
                 .Build();
 
-            await _container.StartAsync();
+            _container.StartAsync().GetAwaiter().GetResult();
         }
 
         // Register DbContext with the container's connection string

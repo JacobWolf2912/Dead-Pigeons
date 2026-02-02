@@ -1,9 +1,9 @@
 using DeadPigeons.Core.Interfaces;
 using DeadPigeons.Infrastructure.Data;
-using DeadPigeons.Test.Helpers;
+using DeadPigeons.xUnit.Helpers;
 using Xunit;
 
-namespace DeadPigeons.Test.Services;
+namespace DeadPigeons.xUnit.Services;
 
 public class GameServiceTests
 {
