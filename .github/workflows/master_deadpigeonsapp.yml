@@ -30,7 +30,7 @@ jobs:
         run: dotnet restore '.\Dead Pigeons.sln'
 
       - name: Run tests
-        run: dotnet test '.\DeadPigeons.Test\DeadPigeons.Test.csproj'
+        run: dotnet test '.\DeadPigeons.xUnit\DeadPigeons.xUnit.csproj'
 
       - name: dotnet publish
         run: dotnet publish '.\Dead Pigeons\Dead Pigeons.csproj' -c Release -o '${{env.DOTNET_ROOT}}\myapp'
