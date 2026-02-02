@@ -26,6 +26,9 @@ jobs:
       - name: Build with dotnet
         run: dotnet build '.\Dead Pigeons\Dead Pigeons.csproj' --configuration Release
 
+      - name: Restore NuGet packages
+        run: dotnet restore
+
       - name: Run tests
         run: dotnet test '.\DeadPigeons.Test\DeadPigeons.Test.csproj'
 
