@@ -26,6 +26,9 @@ jobs:
       - name: Build with dotnet
         run: dotnet build '.\Dead Pigeons\Dead Pigeons.csproj' --configuration Release
 
+      - name: Run tests
+          run: dotnet test
+
       - name: dotnet publish
         run: dotnet publish '.\Dead Pigeons\Dead Pigeons.csproj' -c Release -o '${{env.DOTNET_ROOT}}\myapp'
 
